@@ -1,0 +1,36 @@
+version: "3.8"
+
+networks:
+  proxy:
+    name: proxy
+
+volumes:
+  mysql-data:
+    driver: local
+services:
+  mysql:
+    image: mysql
+    networks:
+      - proxy
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=scanandpark
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: "mysql -uroot -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW databases'"
+      interval: 10s
+      retries: 3
+  api:
+    build: ./ScanAndPark-backend
+    networks:
+      - proxy
+    ports:
+      - 3000:3000
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+
